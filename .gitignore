@@ -127,12 +127,46 @@ backend/static/uploads/*
 *.sql
 !schema.sql
 
-# Test files
+# ==========================================
+# EXCLUIR SCRIPTS DE PRUEBA Y EVIDENCIAS
+# ==========================================
+
+# Scripts de prueba
 test_*.py
 *_test.py
 check_*.py
 verificar_*.py
 probar_*.py
+verify_*.py
+crear_admin.py
+create_*.py
+insert_*.py
+agregar_*.py
+
+# Evidencias del proyecto formativo
+*_GA7-*.md
+*_EV*.md
+Evidencia_*.md
+Informe_Tecnico_*.md
+SECCION_*.html
+GA7-*.md
+
+# Documentación técnica específica del proyecto
+DOCUMENTACION_COMPLETA_PROYECTO.md
+
+# Archivos de prueba específicos
+verificar_carrito.js
+test_carrito.html
+mock-*.js
+package-mock.json
+
+# Archivos de configuración de prueba
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+
+# Diagramas PlantUML
+*.puml
 
 # Documentation build
 docs/_build/
