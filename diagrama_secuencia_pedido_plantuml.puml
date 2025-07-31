@@ -1,0 +1,194 @@
+@startuml Flujo_Pedido_Secuencia
+
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam participantBackgroundColor #F8F9FA
+skinparam participantBorderColor #2E3B55
+skinparam participantFontColor #2E3B55
+skinparam participantFontSize 12
+skinparam sequenceArrowColor #E53E3E
+skinparam sequenceMessageFontSize 10
+
+title Flujo de Pedido - Diagrama de Secuencia
+
+actor Cliente as C
+participant "Frontend\n(React)" as F
+participant "CarritoContext" as CC
+participant "Backend\n(Flask)" as B
+participant "Base de\nDatos" as DB
+participant "Mesero" as M
+participant "Cocinero" as CO
+
+' ==========================================
+' 1. CLIENTE EXPLORA MENÚ
+' ==========================================
+C -> F: Accede al menú
+F -> B: GET /platillos
+B -> DB: SELECT * FROM platillos
+DB --> B: Lista de platillos
+B --> F: JSON con platillos
+F --> C: Muestra menú interactivo
+
+' ==========================================
+' 2. CLIENTE AGREGA AL CARRITO
+' ==========================================
+C -> F: Hace clic en "Agregar al Carrito"
+F -> CC: agregarAlCarrito(platillo)
+CC -> CC: Actualiza estado del carrito
+CC --> F: Carrito actualizado
+F --> C: Confirma agregado al carrito
+
+' ==========================================
+' 3. CLIENTE REVISA CARRITO
+' ==========================================
+C -> F: Navega al carrito
+F -> CC: Obtiene estado del carrito
+CC --> F: Items y total
+F --> C: Muestra resumen del pedido
+
+' ==========================================
+' 4. CLIENTE CONFIRMA PEDIDO
+' ==========================================
+C -> F: Hace clic en "Confirmar Pedido"
+F -> B: POST /pedidos/nuevo_pedido
+note right: Incluye items del carrito
+
+B -> B: Valida datos del pedido
+B -> DB: INSERT INTO pedidos
+DB --> B: ID del pedido creado
+
+loop Para cada item del carrito
+    B -> DB: INSERT INTO detalles_pedido
+    DB --> B: Detalle creado
+end
+
+B -> DB: INSERT INTO notificaciones
+DB --> B: Notificación creada
+
+B --> F: Pedido creado exitosamente
+F -> CC: vaciarCarrito()
+CC --> F: Carrito vaciado
+F --> C: Confirma pedido creado
+
+' ==========================================
+' 5. MESERO VE PEDIDO PENDIENTE
+' ==========================================
+M -> F: Accede al panel de mesero
+F -> B: GET /pedidos/pendientes
+B -> DB: SELECT * FROM pedidos WHERE estado = 'pendiente'
+DB --> B: Lista de pedidos pendientes
+B --> F: Pedidos pendientes
+F --> M: Muestra pedidos pendientes
+
+' ==========================================
+' 6. MESERO REGISTRA PAGO
+' ==========================================
+M -> F: Selecciona pedido y registra pago
+F -> B: POST /pedidos/transacciones
+B -> B: Valida método de pago
+B -> DB: UPDATE pedidos SET estado = 'pagado'
+DB --> B: Estado actualizado
+B -> DB: INSERT INTO notificaciones
+DB --> B: Notificación de pago creada
+B --> F: Pago registrado exitosamente
+F --> M: Confirma pago registrado
+
+' ==========================================
+' 7. MESERO ENVÍA A COCINA
+' ==========================================
+M -> F: Hace clic en "Enviar a Cocina"
+F -> B: PATCH /pedidos/{id}/estado
+note right: Cambia estado a 'en_preparacion'
+
+B -> DB: UPDATE pedidos SET estado = 'en_preparacion'
+DB --> B: Estado actualizado
+B -> DB: INSERT INTO notificaciones
+DB --> B: Notificación para cocina creada
+B --> F: Pedido enviado a cocina
+F --> M: Confirma envío a cocina
+
+' ==========================================
+' 8. COCINERO VE PEDIDO
+' ==========================================
+CO -> F: Accede al panel de cocina
+F -> B: GET /pedidos/en-preparacion
+B -> DB: SELECT * FROM pedidos WHERE estado = 'en_preparacion'
+DB --> B: Lista de pedidos en preparación
+B --> F: Pedidos en preparación
+F --> CO: Muestra pedidos a preparar
+
+' ==========================================
+' 9. COCINERO PREPARA PEDIDO
+' ==========================================
+CO -> F: Selecciona pedido y marca como listo
+F -> B: PATCH /pedidos/{id}/estado
+note right: Cambia estado a 'listo'
+
+B -> DB: UPDATE pedidos SET estado = 'listo'
+DB --> B: Estado actualizado
+B -> DB: INSERT INTO notificaciones
+DB --> B: Notificación de pedido listo creada
+B --> F: Pedido marcado como listo
+F --> CO: Confirma pedido listo
+
+' ==========================================
+' 10. MESERO ENTREGA PEDIDO
+' ==========================================
+M -> F: Ve notificación de pedido listo
+F -> B: GET /notificaciones
+B -> DB: SELECT * FROM notificaciones WHERE tipo = 'PEDIDO_LISTO'
+DB --> B: Notificaciones de pedidos listos
+B --> F: Notificaciones
+F --> M: Muestra pedidos listos para entregar
+
+M -> F: Marca pedido como entregado
+F -> B: PATCH /pedidos/{id}/estado
+note right: Cambia estado a 'entregado'
+
+B -> DB: UPDATE pedidos SET estado = 'entregado'
+DB --> B: Estado actualizado
+B -> DB: INSERT INTO notificaciones
+DB --> B: Notificación de entrega creada
+B --> F: Pedido entregado
+F --> M: Confirma entrega
+
+' ==========================================
+' 11. CLIENTE RECIBE NOTIFICACIÓN
+' ==========================================
+C -> F: Ve notificación de pedido entregado
+F -> B: GET /notificaciones
+B -> DB: SELECT * FROM notificaciones WHERE id_usuario = cliente_id
+DB --> B: Notificaciones del cliente
+B --> F: Notificaciones
+F --> C: Muestra notificación de entrega
+
+' ==========================================
+' NOTAS EXPLICATIVAS
+' ==========================================
+note over C, DB
+  Flujo completo de un pedido desde
+  la selección hasta la entrega,
+  involucrando todos los roles del
+  sistema y manteniendo la
+  comunicación en tiempo real
+end note
+
+note over F, CC
+  El CarritoContext maneja el estado
+  global del carrito durante toda
+  la sesión del cliente
+end note
+
+note over B, DB
+  El backend valida datos y mantiene
+  la integridad de la información
+  en la base de datos
+end note
+
+note over M, CO
+  La comunicación entre mesero y
+  cocinero se realiza a través de
+  notificaciones automáticas
+end note
+
+@enduml 

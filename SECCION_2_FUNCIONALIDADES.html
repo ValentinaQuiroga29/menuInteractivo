@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Menú Interactivo - Sección 2: Funcionalidades</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        h1 {
+            color: #2E3B55;
+            text-align: center;
+            border-bottom: 3px solid #E53E3E;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #2E3B55;
+            border-left: 4px solid #E53E3E;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #4A5568;
+            margin-top: 25px;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #38A169;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .use-case {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #38A169;
+        }
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            background: #f0f8ff;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3182CE;
+        }
+        .feature-list li:before {
+            content: "✅ ";
+            font-weight: bold;
+        }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        .panel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .panel-card {
+            background: white;
+            border: 2px solid #E53E3E;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .panel-card h4 {
+            color: #E53E3E;
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+        .status-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .status-step {
+            text-align: center;
+            flex: 1;
+        }
+        .status-step .icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        @media print {
+            body { background: white; }
+            .container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ Sistema de Menú Interactivo</h1>
+        <h2>Sección 2: Funcionalidades y Casos de Uso</h2>
+
+        <h2>📋 Requerimientos del Sistema</h2>
+        
+        <h3>Requerimientos Funcionales</h3>
+        
+        <h4>RF1 - Gestión de Usuarios</h4>
+        <ul class="feature-list">
+            <li>Sistema de autenticación por roles</li>
+            <li>Registro de usuarios (cliente, mesero, cocinero, administrador)</li>
+            <li>Control de acceso a diferentes paneles</li>
+            <li>Gestión de perfiles de usuario</li>
+        </ul>
+
+        <h4>RF2 - Gestión de Platillos</h4>
+        <ul class="feature-list">
+            <li>CRUD completo de platillos</li>
+            <li>Categorización de platillos</li>
+            <li>Gestión de imágenes</li>
+            <li>Control de disponibilidad</li>
+            <li>Búsqueda y filtrado</li>
+        </ul>
+
+        <h4>RF3 - Sistema de Pedidos</h4>
+        <ul class="feature-list">
+            <li>Creación de pedidos</li>
+            <li>Flujo de estados (pendiente → pagado → en preparación → listo → entregado)</li>
+            <li>Gestión de detalles de pedido</li>
+            <li>Cálculo automático de totales</li>
+            <li>Historial de pedidos</li>
+        </ul>
+
+        <h4>RF4 - Carrito de Compras</h4>
+        <ul class="feature-list">
+            <li>Agregar/quitar productos</li>
+            <li>Control de cantidades</li>
+            <li>Persistencia durante la sesión</li>
+            <li>Cálculo de totales</li>
+            <li>Vaciar carrito</li>
+        </ul>
+
+        <h4>RF5 - Paneles Especializados</h4>
+        <ul class="feature-list">
+            <li>Panel de Administración (gestión completa)</li>
+            <li>Panel de Mesero (gestión de pedidos y pagos)</li>
+            <li>Panel de Cocina (preparación de pedidos)</li>
+            <li>Dashboard con estadísticas</li>
+        </ul>
+
+        <h3>Requerimientos No Funcionales</h3>
+        
+        <h4>RNF1 - Rendimiento</h4>
+        <ul class="feature-list">
+            <li>Respuesta rápida de la API (< 2 segundos)</li>
+            <li>Interfaz responsiva para diferentes dispositivos</li>
+            <li>Optimización de consultas a base de datos</li>
+        </ul>
+
+        <h4>RNF2 - Seguridad</h4>
+        <ul class="feature-list">
+            <li>Validación de datos en frontend y backend</li>
+            <li>Control de acceso por roles</li>
+            <li>Sanitización de entradas</li>
+            <li>Configuración de CORS</li>
+        </ul>
+
+        <h4>RNF3 - Usabilidad</h4>
+        <ul class="feature-list">
+            <li>Interfaz intuitiva y moderna</li>
+            <li>Navegación clara</li>
+            <li>Feedback visual para acciones</li>
+            <li>Diseño responsivo</li>
+        </ul>
+
+        <h2>📝 Casos de Uso</h2>
+
+        <div class="use-case">
+            <h3>CU1 - Cliente hace pedido</h3>
+            <p><strong>Actor:</strong> Cliente</p>
+            <p><strong>Precondición:</strong> Cliente accede al menú</p>
+            <p><strong>Flujo Principal:</strong></p>
+            <ol>
+                <li>Cliente navega al menú</li>
+                <li>Cliente selecciona platillos</li>
+                <li>Cliente agrega al carrito</li>
+                <li>Cliente confirma pedido</li>
+                <li>Sistema crea pedido</li>
+            </ol>
+            <p><strong>Postcondición:</strong> Pedido creado en estado "pendiente"</p>
+        </div>
+
+        <div class="use-case">
+            <h3>CU2 - Mesero gestiona pedido</h3>
+            <p><strong>Actor:</strong> Mesero</p>
+            <p><strong>Precondición:</strong> Existe pedido pendiente</p>
+            <p><strong>Flujo Principal:</strong></p>
+            <ol>
+                <li>Mesero ve pedidos pendientes</li>
+                <li>Mesero registra pago</li>
+                <li>Mesero envía a cocina</li>
+                <li>Mesero entrega pedido</li>
+            </ol>
+            <p><strong>Postcondición:</strong> Pedido marcado como "entregado"</p>
+        </div>
+
+        <div class="use-case">
+            <h3>CU3 - Cocinero prepara pedido</h3>
+            <p><strong>Actor:</strong> Cocinero</p>
+            <p><strong>Precondición:</strong> Pedido en estado "en preparación"</p>
+            <p><strong>Flujo Principal:</strong></p>
+            <ol>
+                <li>Cocinero ve pedidos pendientes</li>
+                <li>Cocinero prepara platillos</li>
+                <li>Cocinero marca como listo</li>
+            </ol>
+            <p><strong>Postcondición:</strong> Pedido marcado como "listo"</p>
+        </div>
+
+        <div class="use-case">
+            <h3>CU4 - Administrador gestiona sistema</h3>
+            <p><strong>Actor:</strong> Administrador</p>
+            <p><strong>Precondición:</strong> Usuario autenticado como administrador</p>
+            <p><strong>Flujo Principal:</strong></p>
+            <ol>
+                <li>Administrador accede al panel</li>
+                <li>Administrador gestiona platillos/usuarios/categorías</li>
+                <li>Administrador ve estadísticas</li>
+            </ol>
+            <p><strong>Postcondición:</strong> Cambios aplicados al sistema</p>
+        </div>
+
+        <h2>🍽️ Funcionalidades Implementadas</h2>
+
+        <h3>Gestión de Platillos</h3>
+        <div class="highlight">
+            <h4>Características de TarjetaPlatillo.jsx (104 líneas)</h4>
+            <ul>
+                <li>✅ Imagen con fallback a ícono</li>
+                <li>✅ Información completa (nombre, precio, descripción)</li>
+                <li>✅ Animación de entrada con Framer Motion</li>
+                <li>✅ Efecto hover con transformación</li>
+                <li>✅ Botón de agregar al carrito</li>
+                <li>✅ Manejo de errores de imagen</li>
+                <li>✅ Tooltip informativo</li>
+            </ul>
+        </div>
+
+        <h4>Operaciones CRUD Completas</h4>
+        <ul class="feature-list">
+            <li><strong>CREATE:</strong> Agregar nuevos platillos con imagen</li>
+            <li><strong>READ:</strong> Listar todos los platillos por categoría</li>
+            <li><strong>UPDATE:</strong> Editar información existente</li>
+            <li><strong>DELETE:</strong> Eliminar platillos del sistema</li>
+        </ul>
+
+        <h3>🛒 Sistema de Carrito (CarritoContext.jsx - 81 líneas)</h3>
+        <div class="highlight">
+            <h4>Funcionalidades Avanzadas</h4>
+            <ul>
+                <li>✅ Estado global con Context API</li>
+                <li>✅ Agregar/quitar items</li>
+                <li>✅ Control de cantidades</li>
+                <li>✅ Cálculo automático de totales</li>
+                <li>✅ Persistencia durante la sesión</li>
+                <li>✅ Validación de precios</li>
+                <li>✅ Logs detallados para debugging</li>
+            </ul>
+        </div>
+
+        <h4>Flujo de Compra</h4>
+        <ol>
+            <li><strong>Selección:</strong> Cliente agrega platillos al carrito</li>
+            <li><strong>Revisión:</strong> Ve el resumen en página de carrito</li>
+            <li><strong>Confirmación:</strong> Envía pedido al backend</li>
+            <li><strong>Procesamiento:</strong> Sistema crea pedido en base de datos</li>
+            <li><strong>Notificación:</strong> Confirma recepción del pedido</li>
+        </ol>
+
+        <h3>📋 Sistema de Pedidos (pedido_controlador.py - 123 líneas)</h3>
+        
+        <h4>Estados del Pedido</h4>
+        <div class="status-flow">
+            <div class="status-step">
+                <div class="icon">🔄</div>
+                <div>pendiente</div>
+            </div>
+            <div class="status-step">
+                <div class="icon">💳</div>
+                <div>pagado</div>
+            </div>
+            <div class="status-step">
+                <div class="icon">👨‍🍳</div>
+                <div>en preparación</div>
+            </div>
+            <div class="status-step">
+                <div class="icon">✅</div>
+                <div>listo</div>
+            </div>
+            <div class="status-step">
+                <div class="icon">🎯</div>
+                <div>entregado</div>
+            </div>
+        </div>
+
+        <h4>Endpoints Implementados</h4>
+        <div class="code-block">
+GET /pedidos/ - Listar todos los pedidos
+GET /pedidos/pendientes - Pedidos por procesar
+GET /pedidos/en-preparacion - Pedidos en cocina
+PATCH /pedidos/{id}/estado - Cambiar estado
+POST /pedidos/nuevo_pedido - Crear nuevo pedido
+POST /pedidos/transacciones - Registrar pago
+        </div>
+
+        <h2>👥 Sistema de Roles y Paneles</h2>
+
+        <div class="panel-grid">
+            <div class="panel-card">
+                <h4>👨‍💻 Panel de Administración (537 líneas)</h4>
+                <ul>
+                    <li>✅ Gestión completa de platillos</li>
+                    <li>✅ Gestión de usuarios y roles</li>
+                    <li>✅ Gestión de categorías</li>
+                    <li>✅ Visualización de estadísticas</li>
+                    <li>✅ Subida de imágenes</li>
+                    <li>✅ Validación de formularios</li>
+                    <li>✅ Modales de confirmación</li>
+                </ul>
+            </div>
+
+            <div class="panel-card">
+                <h4>👨‍💼 Panel de Mesero (286 líneas)</h4>
+                <ul>
+                    <li>✅ Ver pedidos pendientes</li>
+                    <li>✅ Registrar pagos</li>
+                    <li>✅ Cambiar estados de pedidos</li>
+                    <li>✅ Gestionar entregas</li>
+                    <li>✅ Comunicación con cocina</li>
+                </ul>
+            </div>
+
+            <div class="panel-card">
+                <h4>👨‍🍳 Panel de Cocina (173 líneas)</h4>
+                <ul>
+                    <li>✅ Ver pedidos en preparación</li>
+                    <li>✅ Marcar platillos como listos</li>
+                    <li>✅ Ver detalles de preparación</li>
+                    <li>✅ Gestión de prioridades</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <h2>📊 Diagramas del Sistema</h2>
+
+        <h3>Diagrama de Clases</h3>
+
+        <h4>Clase Usuario</h4>
+        <div class="code-block">
+class Usuario:
+    - id_usuario: int
+    - nombre: string
+    - correo: string
+    - contraseña: string
+    - rol: enum
+    + autenticar()
+    + cambiar_rol()
+        </div>
+
+        <h4>Clase Platillo</h4>
+        <div class="code-block">
+class Platillo:
+    - id_platillo: int
+    - nombre: string
+    - descripcion: text
+    - precio: decimal
+    - imagen: string
+    - estado: enum
+    - id_categoria: int
+    + cambiar_estado()
+    + actualizar_precio()
+        </div>
+
+        <h4>Clase Pedido</h4>
+        <div class="code-block">
+class Pedido:
+    - id_pedido: int
+    - id_cliente: int
+    - id_mesero: int
+    - estado: enum
+    - fecha_hora: datetime
+    + cambiar_estado()
+    + calcular_total()
+        </div>
+
+        <h4>Clase DetallePedido</h4>
+        <div class="code-block">
+class DetallePedido:
+    - id_detalle: int
+    - id_pedido: int
+    - id_platillo: int
+    - cantidad: int
+    - precio_unitario: decimal
+    + calcular_subtotal()
+        </div>
+
+        <h3>Diagrama de Paquetes</h3>
+        <div class="flow-diagram">
+menu_interactivo/
+├── 📦 frontend/
+│   ├── 📦 src/
+│   │   ├── componentes/
+│   │   ├── paginas/
+│   │   ├── 📦 contexto/
+│   │   └── assets/
+│   └── 📦 public/
+├── 📦 backend/
+│   ├── controladores/
+│   ├── 📦 modelos/
+│   ├── static/
+│   └── 📦 __pycache__/
+└── docs/
+        </div>
+
+        <h3>Diagrama de Componentes</h3>
+
+        <h4>Frontend Components:</h4>
+        <ul class="feature-list">
+            <li><strong>App.jsx:</strong> Componente raíz con enrutamiento</li>
+            <li><strong>Plantilla.jsx:</strong> Layout principal</li>
+            <li><strong>TarjetaPlatillo.jsx:</strong> Visualización de platillos</li>
+            <li><strong>CarritoContext.jsx:</strong> Estado global del carrito</li>
+            <li><strong>RutaProtegida.jsx:</strong> Control de acceso</li>
+        </ul>
+
+        <h4>Backend Components:</h4>
+        <ul class="feature-list">
+            <li><strong>app.py:</strong> Servidor principal Flask</li>
+            <li><strong>controladores/:</strong> Lógica de negocio</li>
+            <li><strong>modelos/:</strong> Acceso a datos</li>
+            <li><strong>conexion.py:</strong> Configuración de BD</li>
+        </ul>
+
+        <h2>🔒 Seguridad y Validaciones</h2>
+
+        <h3>Medidas de Seguridad Implementadas</h3>
+
+        <h4>Autenticación y Autorización</h4>
+        <div class="code-block">
+// RutaProtegida.jsx - Control de acceso
+const RutaProtegida = ({ rolPermitido, children }) => {
+  const rol = localStorage.getItem('rol');
+  return rol === rolPermitido ? children : <Navigate to="/login" />;
+};
+        </div>
+
+        <h4>Validación de Datos</h4>
+        <div class="code-block">
+# Backend - Validación de entrada
+def crear_platillo():
+    nombre = request.form.get('nombre')
+    if not nombre:
+        return jsonify({"error": "Nombre requerido"}), 400
+        </div>
+
+        <h4>CORS Configurado</h4>
+        <div class="code-block">
+# app.py - Configuración de seguridad
+CORS(app, 
+     origins=["http://localhost:5173"],
+     methods=["GET", "POST", "PUT", "DELETE"],
+     allow_headers=["Content-Type", "Authorization"])
+        </div>
+
+        <h3>Validaciones Implementadas</h3>
+
+        <h4>Frontend</h4>
+        <ul class="feature-list">
+            <li>✅ Validación de formularios</li>
+            <li>✅ Control de tipos de datos</li>
+            <li>✅ Manejo de errores de red</li>
+            <li>✅ Validación de archivos de imagen</li>
+        </ul>
+
+        <h4>Backend</h4>
+        <ul class="feature-list">
+            <li>✅ Validación de datos de entrada</li>
+            <li>✅ Sanitización de strings</li>
+            <li>✅ Verificación de permisos</li>
+            <li>✅ Manejo de excepciones</li>
+        </ul>
+
+        <div class="highlight">
+            <h3>📋 Resumen de la Sección 2</h3>
+            <p>Esta sección detalla las funcionalidades implementadas, casos de uso del sistema, diagramas de clases y componentes, así como las medidas de seguridad implementadas. El sistema cuenta con un flujo completo de pedidos, gestión de roles especializada y validaciones robustas tanto en frontend como backend.</p>
+        </div>
+    </div>
+</body>
+</html> 
