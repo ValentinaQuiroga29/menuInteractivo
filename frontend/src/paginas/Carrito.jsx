@@ -97,7 +97,7 @@ export default function Carrito() {
 
       console.log('✅ Respuesta del servidor:', response.data);
 
-      setMensaje("✅ ¡Pedido enviado con éxito! Tu pedido está siendo preparado.");
+      setMensaje("✅ ¡Pedido enviado con éxito! El mesero recibirá una notificación para procesar tu pago.");
       vaciarCarrito();
       setTimeout(() => {
         navigate("/menu");

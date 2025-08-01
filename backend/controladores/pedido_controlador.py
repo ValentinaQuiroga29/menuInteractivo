@@ -63,7 +63,7 @@ def nuevo_pedido():
     # Crear el pedido
     id_cliente = datos["id_cliente"]
     fecha_pedido = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    estado = "pendiente"
+    estado = "esperando_pago"  # Nuevo estado: esperando que el mesero reciba el pago
     
     id_pedido = insertar_pedido(id_cliente, fecha_pedido, estado, 0)
     
@@ -77,7 +77,7 @@ def nuevo_pedido():
             producto["precio"]
         )
     
-    return jsonify({"mensaje": "Pedido creado", "id_pedido": id_pedido}), 201
+    return jsonify({"mensaje": "Pedido creado y esperando pago", "id_pedido": id_pedido}), 201
 
 @pedido_rutas.route("/<int:id_pedido>", methods=["PUT"])
 def editar_pedido(id_pedido):
@@ -99,11 +99,20 @@ def borrar_pedido(id_pedido):
 def cambiar_estado(id_pedido):
     datos = request.json
     nuevo_estado = datos.get("estado")
-    if nuevo_estado not in ["pendiente", "en_preparacion", "listo", "entregado", "cancelado"]:
-        return jsonify({"mensaje": "Estado inválido"}), 400
     
-    cambiar_estado_pedido(id_pedido, nuevo_estado)
-    return jsonify({"mensaje": f"Estado del pedido cambiado a {nuevo_estado}"})
+    if nuevo_estado == "enviado_a_cocina":
+        # El mesero envía el pedido a cocina después de recibir el pago
+        cambiar_estado_pedido(id_pedido, "pendiente")  # Cambia a pendiente para cocina
+        return jsonify({"mensaje": "Pedido enviado a cocina"}), 200
+    elif nuevo_estado == "completado":
+        # El cocinero marca el pedido como completado
+        cambiar_estado_pedido(id_pedido, "completado")
+        return jsonify({"mensaje": "Pedido completado"}), 200
+    elif nuevo_estado in ["pendiente", "en_preparacion", "listo", "entregado", "cancelado", "esperando_pago"]:
+        cambiar_estado_pedido(id_pedido, nuevo_estado)
+        return jsonify({"mensaje": "Estado actualizado"}), 200
+    else:
+        return jsonify({"mensaje": "Estado inválido"}), 400
 
 @pedido_rutas.route("/<int:id_pedido>/total", methods=["GET"])
 def obtener_total(id_pedido):

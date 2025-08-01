@@ -39,12 +39,12 @@ export default function PanelMesero() {
 
   // Carga los pedidos activos al montar y cada 30 segundos
   const cargarPedidos = () => {
-    axios.get('http://localhost:5000/pedidos')
+    axios.get('http://192.168.2.7:5000/pedidos')
       .then(res => {
         // Filtra los pedidos relevantes para el mesero
         const pedidosActivos = res.data.filter(p => 
-          p.estado === 'pendiente' || p.estado === 'pagado' || 
-          p.estado === 'en preparación' || p.estado === 'listo'
+          p.estado === 'esperando_pago' || p.estado === 'pendiente' || 
+          p.estado === 'en_preparacion' || p.estado === 'listo'
         );
         setPedidos(pedidosActivos);
       })
@@ -63,7 +63,7 @@ export default function PanelMesero() {
 
   // Actualiza el estado de un pedido
   const actualizarEstadoPedido = (idPedido, nuevoEstado) => {
-    axios.patch(`http://localhost:5000/pedidos/${idPedido}/estado`, {
+    axios.patch(`http://192.168.2.7:5000/pedidos/${idPedido}/estado`, {
       estado: nuevoEstado
     })
     .then(() => {
@@ -76,24 +76,32 @@ export default function PanelMesero() {
     });
   };
 
-  // Registra el pago de un pedido
+  // Registra el pago de un pedido y envía a cocina
   const registrarPago = (idPedido) => {
     const idMesero = parseInt(localStorage.getItem('usuario_id'));
-    axios.post(`http://localhost:5000/pedidos/transacciones`, {
+    
+    // Primero registra el pago
+    axios.post(`http://192.168.2.7:5000/pedidos/transacciones`, {
       id_pedido: idPedido,
       metodo_pago: 'efectivo',
       id_mesero: idMesero
     })
     .then(() => {
+      // Luego envía el pedido a cocina
+      return axios.patch(`http://192.168.2.7:5000/pedidos/${idPedido}/estado`, {
+        estado: 'enviado_a_cocina'
+      });
+    })
+    .then(() => {
       cargarPedidos();
-      setMensaje(`Pago registrado para pedido #${idPedido}`);
+      setMensaje(`✅ Pago registrado y pedido #${idPedido} enviado a cocina`);
       setDialogPago(false);
       setPedidoSeleccionado(null);
       setMontoRecibido('');
     })
     .catch(err => {
       console.error(err);
-      setMensaje('Error al registrar pago');
+      setMensaje('Error al procesar pago y enviar a cocina');
     });
   };
 
@@ -106,9 +114,10 @@ export default function PanelMesero() {
   // Helpers para mostrar colores e íconos según el estado
   const getColorEstado = (estado) => {
     switch (estado) {
+      case 'esperando_pago': return 'error.main'; // Rojo para esperando pago
       case 'pendiente': return 'warning.main';
       case 'pagado': return 'info.main';
-      case 'en preparación': return 'primary.main';
+      case 'en_preparacion': return 'primary.main';
       case 'listo': return 'success.main';
       case 'entregado': return 'secondary.main';
       default: return 'text.secondary';
@@ -117,9 +126,10 @@ export default function PanelMesero() {
 
   const getIconoEstado = (estado) => {
     switch (estado) {
+      case 'esperando_pago': return <AttachMoney />; // Ícono de dinero para esperando pago
       case 'pendiente': return <Schedule />;
       case 'pagado': return <Payment />;
-      case 'en preparación': return <Restaurant />;
+      case 'en_preparacion': return <Restaurant />;
       case 'listo': return <CheckCircle />;
       case 'entregado': return <LocalShipping />;
       default: return <Schedule />;
@@ -128,9 +138,10 @@ export default function PanelMesero() {
 
   const getChipColor = (estado) => {
     switch (estado) {
+      case 'esperando_pago': return 'error'; // Rojo para esperando pago
       case 'pendiente': return 'warning';
       case 'pagado': return 'info';
-      case 'en preparación': return 'primary';
+      case 'en_preparacion': return 'primary';
       case 'listo': return 'success';
       case 'entregado': return 'secondary';
       default: return 'default';
@@ -198,6 +209,17 @@ export default function PanelMesero() {
 
                 {/* Acciones según el estado del pedido */}
                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                  {p.estado === 'esperando_pago' && (
+                    <Button 
+                      variant="contained" 
+                      color="error"
+                      startIcon={<AttachMoney />}
+                      onClick={() => abrirDialogPago(p)}
+                      sx={{ fontWeight: 600 }}
+                    >
+                      Recibir Pago y Enviar a Cocina
+                    </Button>
+                  )}
                   {p.estado === 'pendiente' && (
                     <Button 
                       variant="contained" 
@@ -251,7 +273,12 @@ export default function PanelMesero() {
 
       {/* Diálogo para registrar pago en efectivo */}
       <Dialog open={dialogPago} onClose={() => setDialogPago(false)}>
-        <DialogTitle>Recibir Pago en Efectivo</DialogTitle>
+        <DialogTitle>
+          {pedidoSeleccionado?.estado === 'esperando_pago' 
+            ? 'Recibir Pago y Enviar a Cocina' 
+            : 'Recibir Pago en Efectivo'
+          }
+        </DialogTitle>
         <DialogContent>
           <Typography variant="body1" sx={{ mb: 2 }}>
             Pedido #{pedidoSeleccionado?.id_pedido}
@@ -277,7 +304,10 @@ export default function PanelMesero() {
             variant="contained"
             disabled={!montoRecibido || parseFloat(montoRecibido) <= 0}
           >
-            Confirmar Pago
+            {pedidoSeleccionado?.estado === 'esperando_pago' 
+              ? 'Confirmar Pago y Enviar a Cocina' 
+              : 'Confirmar Pago'
+            }
           </Button>
         </DialogActions>
       </Dialog>
