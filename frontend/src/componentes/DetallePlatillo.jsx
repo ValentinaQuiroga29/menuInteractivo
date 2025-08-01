@@ -12,6 +12,7 @@ import {
   Chip
 } from '@mui/material';
 import { Close, AddShoppingCart } from '@mui/icons-material';
+import BACKEND_URL from '../config';
 
 const modalStyle = {
   position: 'absolute',
@@ -37,8 +38,8 @@ export default function DetallePlatillo({ platillo, open, onClose, onAgregar }) 
   const getImageUrl = (imagePath) => {
     if (!imagePath) return `https://via.placeholder.com/600x400?text=${platillo.nombre}`;
     if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/static/')) return `http://localhost:5000${imagePath}`;
-    return `http://localhost:5000/static/uploads/${imagePath}`;
+    if (imagePath.startsWith('/static/')) return `${BACKEND_URL}${imagePath}`;
+    return `${BACKEND_URL}/static/uploads/${imagePath}`;
   };
 
   return (

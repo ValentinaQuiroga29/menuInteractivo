@@ -51,13 +51,26 @@ def crear_categoria():
 
 @categoria_rutas.route("/<int:id_categoria>", methods=["PUT"])
 def editar_categoria(id_categoria):
+    # Verificar si la categoría existe
+    categoria_existente = obtener_categoria_por_id(id_categoria)
+    if not categoria_existente:
+        return jsonify({"mensaje": "Categoría no encontrada"}), 404
+    
     datos = request.json
-    actualizar_categoria(
-        id_categoria,
-        datos["nombre"], 
-        datos.get("descripcion")
-    )
-    return jsonify({"mensaje": "Categoría actualizada exitosamente"})
+    
+    # Validar datos requeridos
+    if not datos.get("nombre"):
+        return jsonify({"mensaje": "Nombre es requerido"}), 400
+    
+    try:
+        actualizar_categoria(
+            id_categoria,
+            datos["nombre"], 
+            datos.get("descripcion")
+        )
+        return jsonify({"mensaje": "Categoría actualizada exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"mensaje": f"Error al actualizar categoría: {str(e)}"}), 500
 
 @categoria_rutas.route("/<int:id_categoria>", methods=["DELETE"])
 def borrar_categoria(id_categoria):

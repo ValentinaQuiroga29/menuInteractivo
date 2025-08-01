@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { Delete, Edit, Add, People, Restaurant, Assessment } from '@mui/icons-material';
 import axios from 'axios';
+import BACKEND_URL from '../config';
 
 export default function PanelAdministracion() {
   // Estados para pestaña activa, datos y formularios
@@ -37,7 +38,7 @@ export default function PanelAdministracion() {
 
   // Carga platillos desde el backend
   const cargarPlatillos = () => {
-    axios.get('http://192.168.2.7:5000/platillos')
+    axios.get(`${BACKEND_URL}/platillos`)
       .then(res => setPlatillos(res.data))
       .catch(err => {
         console.error(err);
@@ -47,7 +48,7 @@ export default function PanelAdministracion() {
 
   // Carga usuarios desde el backend
   const cargarUsuarios = () => {
-    axios.get('http://192.168.2.7:5000/usuarios')
+    axios.get(`${BACKEND_URL}/usuarios`)
       .then(res => setUsuarios(res.data))
       .catch(err => {
         console.error(err);
@@ -57,7 +58,7 @@ export default function PanelAdministracion() {
 
   // Carga categorías desde el backend
   const cargarCategorias = () => {
-    axios.get('http://192.168.2.7:5000/categorias')
+    axios.get(`${BACKEND_URL}/categorias`)
       .then(res => setCategorias(res.data))
       .catch(err => {
         console.error(err);
@@ -67,7 +68,7 @@ export default function PanelAdministracion() {
 
   // Carga pedidos desde el backend
   const cargarPedidos = () => {
-    axios.get('http://192.168.2.7:5000/pedidos')
+    axios.get(`${BACKEND_URL}/pedidos`)
       .then(res => setPedidos(res.data))
       .catch(err => {
         console.error(err);
@@ -98,22 +99,26 @@ export default function PanelAdministracion() {
     if (imagen) formData.append('imagen', imagen);
 
     const url = editando
-      ? `http://192.168.2.7:5000/platillos/${editando}`
-      : 'http://192.168.2.7:5000/platillos';
+      ? `${BACKEND_URL}/platillos/${editando}`
+      : `${BACKEND_URL}/platillos`;
 
     const metodo = editando ? axios.put : axios.post;
 
     metodo(url, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
-    }).then(() => {
+    }).then((response) => {
+      console.log('Respuesta del servidor:', response.data);
       cargarPlatillos();
       setFormulario({ nombre: '', precio: '', descripcion: '', id_categoria: 1 });
       setImagen(null);
       setEditando(null);
       setMensaje(editando ? 'Platillo actualizado exitosamente' : 'Platillo creado exitosamente');
+      setOpenDialog(false);
+      setDialogType('');
     }).catch(err => {
-      console.error(err);
-      setMensaje('Error al guardar platillo');
+      console.error('Error completo:', err);
+      console.error('Respuesta del servidor:', err.response?.data);
+      setMensaje(`Error al guardar platillo: ${err.response?.data?.mensaje || err.message}`);
     });
   };
 
@@ -126,11 +131,13 @@ export default function PanelAdministracion() {
     });
     setEditando(p.id_platillo);
     setMensaje('');
+    setDialogType('platillo');
+    setOpenDialog(true);
   };
 
   const eliminarPlatillo = (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este platillo?')) {
-      axios.delete(`http://192.168.2.7:5000/platillos/${id}`)
+      axios.delete(`${BACKEND_URL}/platillos/${id}`)
         .then(() => {
           cargarPlatillos();
           setMensaje('Platillo eliminado exitosamente');
@@ -148,27 +155,48 @@ export default function PanelAdministracion() {
   };
 
   const guardarUsuario = () => {
-    if (!formularioUsuario.nombre || !formularioUsuario.correo || !formularioUsuario.contraseña) {
-      setMensaje('Nombre, correo y contraseña son requeridos');
+    if (!formularioUsuario.nombre || !formularioUsuario.correo) {
+      setMensaje('Nombre y correo son requeridos');
       return;
     }
 
+    // Para edición, no requerimos contraseña si está vacía
+    if (!editandoUsuario && !formularioUsuario.contraseña) {
+      setMensaje('Contraseña es requerida para nuevos usuarios');
+      return;
+    }
+
+    const datosUsuario = {
+      nombre: formularioUsuario.nombre,
+      correo: formularioUsuario.correo,
+      rol: formularioUsuario.rol
+    };
+
+    // Solo incluir contraseña si no está vacía
+    if (formularioUsuario.contraseña) {
+      datosUsuario.contraseña = formularioUsuario.contraseña;
+    }
+
     const url = editandoUsuario
-      ? `http://192.168.2.7:5000/usuarios/${editandoUsuario}`
-      : 'http://192.168.2.7:5000/usuarios';
+      ? `${BACKEND_URL}/usuarios/${editandoUsuario}`
+      : `${BACKEND_URL}/usuarios`;
 
     const metodo = editandoUsuario ? axios.put : axios.post;
 
-    metodo(url, formularioUsuario)
-      .then(() => {
+    metodo(url, datosUsuario)
+      .then((response) => {
+        console.log('Respuesta del servidor:', response.data);
         cargarUsuarios();
         setFormularioUsuario({ nombre: '', correo: '', contraseña: '', rol: 'cliente' });
         setEditandoUsuario(null);
         setMensaje(editandoUsuario ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente');
+        setOpenDialog(false);
+        setDialogType('');
       })
       .catch(err => {
-        console.error(err);
-        setMensaje('Error al guardar usuario');
+        console.error('Error completo:', err);
+        console.error('Respuesta del servidor:', err.response?.data);
+        setMensaje(`Error al guardar usuario: ${err.response?.data?.mensaje || err.message}`);
       });
   };
 
@@ -181,11 +209,13 @@ export default function PanelAdministracion() {
     });
     setEditandoUsuario(u.id_usuario);
     setMensaje('');
+    setDialogType('usuario');
+    setOpenDialog(true);
   };
 
   const eliminarUsuario = (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-      axios.delete(`http://192.168.2.7:5000/usuarios/${id}`)
+      axios.delete(`${BACKEND_URL}/usuarios/${id}`)
         .then(() => {
           cargarUsuarios();
           setMensaje('Usuario eliminado exitosamente');
@@ -209,21 +239,25 @@ export default function PanelAdministracion() {
     }
 
     const url = editandoCategoria
-      ? `http://192.168.2.7:5000/categorias/${editandoCategoria}`
-      : 'http://192.168.2.7:5000/categorias';
+      ? `${BACKEND_URL}/categorias/${editandoCategoria}`
+      : `${BACKEND_URL}/categorias`;
 
     const metodo = editandoCategoria ? axios.put : axios.post;
 
     metodo(url, formularioCategoria)
-      .then(() => {
+      .then((response) => {
+        console.log('Respuesta del servidor:', response.data);
         cargarCategorias();
         setFormularioCategoria({ nombre: '' });
         setEditandoCategoria(null);
         setMensaje(editandoCategoria ? 'Categoría actualizada exitosamente' : 'Categoría creada exitosamente');
+        setOpenDialog(false);
+        setDialogType('');
       })
       .catch(err => {
-        console.error(err);
-        setMensaje('Error al guardar categoría');
+        console.error('Error completo:', err);
+        console.error('Respuesta del servidor:', err.response?.data);
+        setMensaje(`Error al guardar categoría: ${err.response?.data?.mensaje || err.message}`);
       });
   };
 
@@ -231,11 +265,13 @@ export default function PanelAdministracion() {
     setFormularioCategoria({ nombre: c.nombre });
     setEditandoCategoria(c.id_categoria);
     setMensaje('');
+    setDialogType('categoria');
+    setOpenDialog(true);
   };
 
   const eliminarCategoria = (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta categoría?')) {
-      axios.delete(`http://192.168.2.7:5000/categorias/${id}`)
+      axios.delete(`${BACKEND_URL}/categorias/${id}`)
         .then(() => {
           cargarCategorias();
           setMensaje('Categoría eliminada exitosamente');
@@ -273,6 +309,7 @@ export default function PanelAdministracion() {
     setEditandoUsuario(null);
     setEditandoCategoria(null);
     setMensaje('');
+    setDialogType('');
   };
 
   // Abre/cierra diálogos de formularios
@@ -284,6 +321,7 @@ export default function PanelAdministracion() {
   const cerrarDialog = () => {
     setOpenDialog(false);
     cancelarEdicion();
+    setDialogType('');
   };
 
   // Render principal del panel de administración
@@ -471,12 +509,39 @@ export default function PanelAdministracion() {
                 fullWidth label="Descripción" name="descripcion" value={formulario.descripcion} 
                 onChange={manejarCambio} margin="normal" multiline rows={3}
               />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={e => setImagen(e.target.files[0])}
-                style={{ marginTop: '16px', marginBottom: '16px' }}
+              <TextField 
+                fullWidth label="Categoría" name="id_categoria" type="number" value={formulario.id_categoria} 
+                onChange={manejarCambio} margin="normal" required
+                helperText="1: Hamburguesas, 2: Bebidas, 3: Postres, etc."
               />
+              <Box sx={{ mt: 2, mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Imagen (opcional): PNG, JPG, JPEG, GIF, WEBP - Máximo 10MB
+                </Typography>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      // Validar tamaño
+                      if (file.size > 10 * 1024 * 1024) {
+                        setMensaje('La imagen es demasiado grande. Máximo 10MB');
+                        e.target.value = '';
+                        return;
+                      }
+                      setImagen(file);
+                      setMensaje('');
+                    }
+                  }}
+                  style={{ marginTop: '8px' }}
+                />
+                {imagen && (
+                  <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
+                    Archivo seleccionado: {imagen.name}
+                  </Typography>
+                )}
+              </Box>
             </Box>
           )}
           
@@ -523,7 +588,6 @@ export default function PanelAdministracion() {
               if (dialogType === 'platillo') guardarPlatillo();
               else if (dialogType === 'usuario') guardarUsuario();
               else if (dialogType === 'categoria') guardarCategoria();
-              cerrarDialog();
             }} 
             variant="contained"
           >

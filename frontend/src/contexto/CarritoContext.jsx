@@ -53,6 +53,25 @@ export function ProveedorCarrito({ children }) {
     console.log('✅ Carrito actualizado:', nuevoCarrito);
   }
 
+  // Actualiza la cantidad de un platillo en el carrito
+  const actualizarCantidad = (id, nuevaCantidad) => {
+    console.log('📝 Actualizando cantidad:', id, 'a', nuevaCantidad);
+    
+    if (nuevaCantidad <= 0) {
+      // Si la cantidad es 0 o menor, eliminar el item
+      quitarDelCarrito(id);
+      return;
+    }
+    
+    const actualizado = carrito.map(p =>
+      p.id_platillo === id
+        ? { ...p, cantidad: nuevaCantidad }
+        : p
+    )
+    setCarrito(actualizado)
+    console.log('✅ Cantidad actualizada:', actualizado);
+  }
+
   // Vacía todo el carrito
   const vaciarCarrito = () => {
     console.log('🧹 Vaciando carrito');
@@ -64,7 +83,13 @@ export function ProveedorCarrito({ children }) {
   console.log('🔄 CarritoContext renderizado, items:', carrito.length);
 
   return (
-    <CarritoContext.Provider value={{ carrito, agregarAlCarrito, quitarDelCarrito, vaciarCarrito }}>
+    <CarritoContext.Provider value={{ 
+      carrito, 
+      agregarAlCarrito, 
+      quitarDelCarrito, 
+      actualizarCantidad,
+      vaciarCarrito 
+    }}>
       {children}
     </CarritoContext.Provider>
   )

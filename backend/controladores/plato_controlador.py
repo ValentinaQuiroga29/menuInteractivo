@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from backend.modelos.plato import (
+from modelos.plato import (
     obtener_platos,
     obtener_plato_por_id,
     insertar_plato,

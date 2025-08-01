@@ -5,14 +5,15 @@ import React from 'react';
 import { Card, CardMedia, CardContent, Typography, Button, Box, Tooltip } from '@mui/material';
 import { Restaurant, AddShoppingCart } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import BACKEND_URL from '../config';
 
 export default function TarjetaPlatillo({ platillo, onAgregar }) {
   // Obtiene la URL de la imagen del platillo, manejando rutas relativas y absolutas
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
     if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/static/')) return `http://192.168.2.7:5000${imagePath}`;
-    return `http://192.168.2.7:5000/static/uploads/${imagePath}`;
+    if (imagePath.startsWith('/static/')) return `${BACKEND_URL}${imagePath}`;
+    return `${BACKEND_URL}/static/uploads/${imagePath}`;
   };
 
   const imageUrl = getImageUrl(platillo.imagen);
@@ -41,16 +42,30 @@ export default function TarjetaPlatillo({ platillo, onAgregar }) {
       >
         {/* Imagen del platillo o ícono por defecto */}
         {imageUrl ? (
-          <CardMedia
-            component="img"
-            height="200"
-            image={imageUrl}
-            alt={platillo.nombre}
-            sx={{ objectFit: 'cover', transition: 'transform 0.4s ease', '&:hover': { transform: 'scale(1.05)' } }}
-            onError={(e) => {
+          <Box sx={{ position: 'relative', height: 200, overflow: 'hidden' }}>
+            <CardMedia
+              component="img"
+              height="200"
+              image={imageUrl}
+              alt={platillo.nombre}
+              sx={{ 
+                objectFit: 'cover', 
+                width: '100%',
+                height: '100%',
+                transition: 'transform 0.4s ease', 
+                '&:hover': { transform: 'scale(1.05)' },
+                // Asegurar que la imagen sea visible
+                display: 'block',
+                visibility: 'visible',
+                opacity: 1,
+                zIndex: 1
+              }}
+              onError={(e) => {
               e.target.style.display = 'none';
             }}
-          />
+            />
+
+          </Box>
         ) : (
           <Box
             sx={{

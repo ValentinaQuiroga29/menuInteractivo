@@ -20,7 +20,7 @@ def insertar_usuario(nombre, correo, contraseña, rol):
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute(
-        "INSERT INTO usuario (nombre, correo, contraseña, rol) VALUES (%s, %s, %s, %s)",
+        "INSERT INTO usuario (nombre, correo, contrasena, rol) VALUES (%s, %s, %s, %s)",
         (nombre, correo, contraseña, rol)
     )
     conexion.commit()
@@ -42,3 +42,14 @@ def eliminar_usuario(id_usuario):
     cursor.execute("DELETE FROM usuario WHERE id_usuario = %s", (id_usuario,))
     conexion.commit()
     conexion.close()
+
+def autenticar_usuario(correo, contraseña):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+    cursor.execute(
+        "SELECT * FROM usuario WHERE correo = %s AND contrasena = %s", 
+        (correo, contraseña)
+    )
+    resultado = cursor.fetchone()
+    conexion.close()
+    return resultado

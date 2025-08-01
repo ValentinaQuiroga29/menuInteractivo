@@ -1,5 +1,5 @@
 // Menu.jsx
-// Página principal para mostrar el menú de platillos y categorías. Permite filtrar y agregar platillos al carrito.
+// Página principal para mostrar el menú de platillos y categorías. Inspirado en las mejores apps de restaurantes.
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -14,14 +14,55 @@ import {
   CircularProgress,
   Button,
   Zoom,
-  Fade
+  Fade,
+  Paper,
+  Divider,
+  IconButton,
+  Badge,
+  useTheme,
+  useMediaQuery,
+  AppBar,
+  Toolbar,
+  Avatar,
+  Tabs,
+  Tab
 } from '@mui/material';
-import { Restaurant, Category, Star, LocalDining } from '@mui/icons-material';
+import { 
+  Restaurant, 
+  Category, 
+  Star, 
+  LocalDining, 
+  AddShoppingCart,
+  Favorite,
+  FavoriteBorder,
+  TrendingUp,
+  FlashOn,
+  EmojiFoodBeverage,
+  LocalPizza,
+  LocalCafe,
+  Cake,
+  RestaurantMenu,
+  Search,
+  ShoppingCart,
+  Person,
+  Home,
+  FilterList,
+  Sort
+} from '@mui/icons-material';
 import axios from 'axios';
 import TarjetaPlatillo from '../componentes/TarjetaPlatillo';
 import { usarCarrito } from '../contexto/CarritoContext';
+import { useNavigate } from 'react-router-dom';
+import BACKEND_URL from '../config';
 
-const fondoUrl = 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=1500&q=80';
+// Paleta de colores inspirada en McDonald's y Starbucks
+const primaryColor = '#FF6B35'; // Naranja vibrante
+const secondaryColor = '#2C3E50'; // Azul oscuro
+const accentColor = '#E74C3C'; // Rojo
+const successColor = '#27AE60'; // Verde
+const warningColor = '#F39C12'; // Amarillo
+const gradientBg = `linear-gradient(135deg, ${primaryColor} 0%, ${accentColor} 100%)`;
+const cardGradient = 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)';
 
 export default function Menu() {
   // Estados para platillos, categorías, selección, carga y errores
@@ -30,7 +71,13 @@ export default function Menu() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { agregarAlCarrito } = usarCarrito();
+  const [favoritos, setFavoritos] = useState(new Set());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('popular');
+  const { agregarAlCarrito, carrito } = usarCarrito();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
   // Carga los datos de platillos y categorías al montar el componente
   useEffect(() => {
@@ -43,8 +90,8 @@ export default function Menu() {
       setLoading(true);
       setError('');
       const [platillosRes, categoriasRes] = await Promise.all([
-        axios.get('http://192.168.2.7:5000/platillos'),
-        axios.get('http://192.168.2.7:5000/categorias')
+        axios.get(`${BACKEND_URL}/platillos`),
+        axios.get(`${BACKEND_URL}/categorias`)
       ]);
       setPlatillos(platillosRes.data);
       setCategorias(categoriasRes.data);
@@ -56,7 +103,7 @@ export default function Menu() {
       } else if (err.response?.status === 500) {
         setError('Error interno del servidor. Revisa los logs del backend.');
       } else {
-        setError('Error al cargar el menú. Verifica que el backend esté corriendo en http://192.168.2.7:5000');
+        setError(`Error al cargar el menú. Verifica que el backend esté corriendo en ${BACKEND_URL}`);
       }
     } finally {
       setLoading(false);
@@ -68,10 +115,33 @@ export default function Menu() {
     agregarAlCarrito(platillo);
   };
 
-  // Filtra los platillos por categoría seleccionada
-  const platillosFiltrados = categoriaSeleccionada === 0 
-    ? platillos 
-    : platillos.filter(p => p.id_categoria === categoriaSeleccionada);
+  // Maneja favoritos
+  const toggleFavorito = (platilloId) => {
+    const newFavoritos = new Set(favoritos);
+    if (newFavoritos.has(platilloId)) {
+      newFavoritos.delete(platilloId);
+    } else {
+      newFavoritos.add(platilloId);
+    }
+    setFavoritos(newFavoritos);
+  };
+
+  // Filtra y ordena los platillos
+  const platillosFiltrados = platillos
+    .filter(p => categoriaSeleccionada === 0 || p.id_categoria === categoriaSeleccionada)
+    .filter(p => p.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return a.precio - b.precio;
+        case 'price-high':
+          return b.precio - a.precio;
+        case 'name':
+          return a.nombre.localeCompare(b.nombre);
+        default:
+          return 0;
+      }
+    });
 
   // Obtiene el nombre de la categoría por id
   const getCategoriaNombre = (idCategoria) => {
@@ -79,156 +149,293 @@ export default function Menu() {
     return categoria ? categoria.nombre : 'Sin categoría';
   };
 
-  // Muestra un loader mientras se cargan los datos
+  // Obtiene el icono de la categoría
+  const getCategoriaIcon = (nombre) => {
+    switch (nombre.toLowerCase()) {
+      case 'entradas': return <RestaurantMenu />;
+      case 'platos principales': return <LocalDining />;
+      case 'postres': return <Cake />;
+      case 'bebidas': return <LocalCafe />;
+      case 'ensaladas': return <EmojiFoodBeverage />;
+      default: return <Restaurant />;
+    }
+  };
+
+  // Muestra un loader moderno mientras se cargan los datos
   if (loading) {
     return (
       <Box sx={{
         minHeight: '100vh',
+        background: gradientBg,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'column',
-        gap: 2
+        gap: 3
       }}>
-        <CircularProgress size={60} />
-        <Typography variant="h6" color="text.secondary">Cargando menú...</Typography>
-        <Typography variant="body2" color="text.secondary">Conectando con el servidor</Typography>
+        <Box sx={{
+          background: 'rgba(255,255,255,0.95)',
+          borderRadius: 4,
+          p: 4,
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+          textAlign: 'center'
+        }}>
+          <CircularProgress 
+            size={80} 
+            sx={{ 
+              color: primaryColor,
+              mb: 2
+            }} 
+          />
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#333' }}>
+            Preparando tu experiencia Boom Burger
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Cargando menú digital...
+          </Typography>
+        </Box>
       </Box>
     );
   }
 
-  // Muestra un mensaje de error si ocurre un problema
+  // Muestra un mensaje de error moderno si ocurre un problema
   if (error) {
     return (
-      <Container maxWidth="md" sx={{ py: 8 }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <Restaurant sx={{ fontSize: 80, color: 'grey.400', mb: 3 }} />
-          <Typography variant="h4" color="text.secondary" gutterBottom>Error al cargar el menú</Typography>
-          <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            Verifica que el backend esté corriendo en http://192.168.2.7:5000
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-            <Button variant="contained" onClick={cargarDatos} sx={{ fontWeight: 600 }}>Reintentar</Button>
-            <Button variant="outlined" onClick={() => window.location.reload()} sx={{ fontWeight: 600 }}>Recargar página</Button>
-          </Box>
-        </Box>
-      </Container>
+      <Box sx={{
+        minHeight: '100vh',
+        background: gradientBg,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Container maxWidth="md">
+          <Paper sx={{
+            p: 4,
+            textAlign: 'center',
+            background: 'rgba(255,255,255,0.95)',
+            borderRadius: 4,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+          }}>
+            <FlashOn sx={{ fontSize: 80, color: accentColor, mb: 3 }} />
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#333' }}>
+              ¡Ups! Algo salió mal
+            </Typography>
+            <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+              Verifica que el backend esté corriendo en http://localhost:5000
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Button 
+                variant="contained" 
+                onClick={cargarDatos} 
+                sx={{ 
+                  fontWeight: 600,
+                  background: gradientBg,
+                  '&:hover': { transform: 'translateY(-2px)' },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Reintentar
+              </Button>
+              <Button 
+                variant="outlined" 
+                onClick={() => window.location.reload()} 
+                sx={{ 
+                  fontWeight: 600,
+                  borderColor: primaryColor,
+                  color: primaryColor,
+                  '&:hover': { 
+                    borderColor: accentColor,
+                    color: accentColor,
+                    transform: 'translateY(-2px)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Recargar página
+              </Button>
+            </Box>
+          </Paper>
+        </Container>
+      </Box>
     );
   }
 
-  // Render principal del menú
+  // Render principal del menú moderno
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      width: '100vw',
-      position: 'relative',
-      overflow: 'hidden',
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'center',
-      py: { xs: 4, md: 8 }
-    }}>
-      {/* Fondo y overlay visual */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 0,
-          backgroundImage: `url(${fondoUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'blur(2px) brightness(0.7)',
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 1,
-          background: 'linear-gradient(120deg, rgba(255, 183, 94, 0.25) 0%, rgba(255, 255, 255, 0.10) 100%)',
-        }}
-      />
-
-      <Container
-        maxWidth="lg"
-        sx={{
-          position: 'relative',
-          zIndex: 2,
-          backgroundColor: 'rgba(255,255,255,0.95)',
-          borderRadius: 4,
-          boxShadow: 6,
-          py: 4
-        }}
-      >
-        {/* Título y descripción */}
-        <Fade in timeout={800}>
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <LocalDining sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-            <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: '#222' }}>
-              Nuestro Menú Estelar
-            </Typography>
-            <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
-              Disfruta de nuestra mejor selección gourmet
-            </Typography>
-          </Box>
-        </Fade>
-
-        {/* Filtros de categorías */}
-        {categorias.length > 0 && (
-          <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, color: '#333' }}>
-              <Category /> Categorías
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Chip label="Todos" onClick={() => setCategoriaSeleccionada(0)} color={categoriaSeleccionada === 0 ? "primary" : "default"} variant={categoriaSeleccionada === 0 ? "filled" : "outlined"} sx={{ fontWeight: 600, fontSize: '1rem', px: 2, py: 1, '&:hover': { transform: 'scale(1.08)' }, transition: 'all 0.2s ease' }} />
-              {categorias.map((categoria) => (
-                <Chip key={categoria.id_categoria} label={categoria.nombre} onClick={() => setCategoriaSeleccionada(categoria.id_categoria)} color={categoriaSeleccionada === categoria.id_categoria ? "primary" : "default"} variant={categoriaSeleccionada === categoria.id_categoria ? "filled" : "outlined"} sx={{ fontWeight: 600, fontSize: '1rem', px: 2, py: 1, '&:hover': { transform: 'scale(1.08)' }, transition: 'all 0.2s ease' }} />
-              ))}
+    <Box sx={{ minHeight: '100vh', background: '#f5f5f5' }}>
+      {/* App Bar inspirado en McDonald's */}
+      <AppBar position="sticky" sx={{ 
+        background: 'white', 
+        color: secondaryColor,
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+      }}>
+        <Toolbar>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+            <Avatar sx={{ 
+              background: gradientBg,
+              width: 40,
+              height: 40
+            }}>
+              <Restaurant />
+            </Avatar>
+            <Box>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 800,
+                color: primaryColor,
+                fontSize: '1.2rem'
+              }}>
+                BOOM BURGER
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Menú Digital
+              </Typography>
             </Box>
           </Box>
-        )}
+          
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton sx={{ color: secondaryColor }}>
+              <Search />
+            </IconButton>
+            <Badge badgeContent={carrito.length} color="error">
+              <IconButton 
+                sx={{ color: secondaryColor }}
+                onClick={() => navigate('/carrito')}
+              >
+                <ShoppingCart />
+              </IconButton>
+            </Badge>
+            <IconButton sx={{ color: secondaryColor }}>
+              <Person />
+            </IconButton>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Hero Section */}
+      <Box sx={{
+        background: gradientBg,
+        py: 4,
+        px: 2
+      }}>
+        <Container maxWidth="lg">
+          <Typography variant="h4" sx={{ 
+            color: 'white',
+            fontWeight: 800,
+            mb: 1,
+            textAlign: 'center'
+          }}>
+            ¡Bienvenido a Boom Burger!
+          </Typography>
+          <Typography variant="body1" sx={{ 
+            color: 'rgba(255,255,255,0.9)',
+            textAlign: 'center',
+            mb: 3
+          }}>
+            Descubre nuestras deliciosas hamburguesas y comidas rápidas
+          </Typography>
+        </Container>
+      </Box>
+
+      <Container maxWidth="lg" sx={{ py: 3 }}>
+        {/* Filtros y búsqueda */}
+        <Paper sx={{
+          p: 2,
+          mb: 3,
+          background: 'white',
+          borderRadius: 2,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+        }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', flex: 1 }}>
+              <Chip 
+                label="Todos" 
+                onClick={() => setCategoriaSeleccionada(0)} 
+                color={categoriaSeleccionada === 0 ? "primary" : "default"} 
+                variant={categoriaSeleccionada === 0 ? "filled" : "outlined"} 
+                icon={<Restaurant />}
+                sx={{ 
+                  fontWeight: 600,
+                  background: categoriaSeleccionada === 0 ? gradientBg : 'transparent',
+                  color: categoriaSeleccionada === 0 ? 'white' : 'inherit'
+                }} 
+              />
+              {categorias.map((categoria) => (
+                <Chip 
+                  key={categoria.id_categoria} 
+                  label={categoria.nombre} 
+                  onClick={() => setCategoriaSeleccionada(categoria.id_categoria)} 
+                  color={categoriaSeleccionada === categoria.id_categoria ? "primary" : "default"} 
+                  variant={categoriaSeleccionada === categoria.id_categoria ? "filled" : "outlined"} 
+                  icon={getCategoriaIcon(categoria.nombre)}
+                  sx={{ 
+                    fontWeight: 600,
+                    background: categoriaSeleccionada === categoria.id_categoria ? gradientBg : 'transparent',
+                    color: categoriaSeleccionada === categoria.id_categoria ? 'white' : 'inherit'
+                  }} 
+                />
+              ))}
+            </Box>
+            
+            <IconButton sx={{ color: secondaryColor }}>
+              <FilterList />
+            </IconButton>
+            <IconButton sx={{ color: secondaryColor }}>
+              <Sort />
+            </IconButton>
+          </Box>
+        </Paper>
 
         {/* Contador de platillos */}
-        <Box sx={{ mb: 3, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            {platillosFiltrados.length} platillo{platillosFiltrados.length !== 1 ? 's' : ''} 
+        <Box sx={{ 
+          mb: 3, 
+          textAlign: 'center',
+          background: 'white',
+          borderRadius: 2,
+          p: 2,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+        }}>
+          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
+            🍔 {platillosFiltrados.length} platillo{platillosFiltrados.length !== 1 ? 's' : ''} 
             {categoriaSeleccionada !== 0 && ` en ${getCategoriaNombre(categoriaSeleccionada)}`}
           </Typography>
         </Box>
 
         {/* Lista de platillos o mensaje si no hay */}
         {platillosFiltrados.length === 0 ? (
-          <Card sx={{ textAlign: 'center', py: 6 }}>
-            <CardContent>
-              <Restaurant sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                No hay platillos disponibles
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {categoriaSeleccionada !== 0 
-                  ? `No hay platillos en la categoría "${getCategoriaNombre(categoriaSeleccionada)}"`
-                  : 'No hay platillos en el menú actualmente'}
-              </Typography>
-            </CardContent>
-          </Card>
+          <Paper sx={{ 
+            textAlign: 'center', 
+            py: 8,
+            background: 'white',
+            borderRadius: 2,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+          }}>
+            <Restaurant sx={{ fontSize: 80, color: '#ccc', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No hay platillos disponibles
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {categoriaSeleccionada !== 0 
+                ? `No hay platillos en la categoría "${getCategoriaNombre(categoriaSeleccionada)}"`
+                : 'No hay platillos en el menú actualmente'}
+            </Typography>
+          </Paper>
         ) : (
-          <Grid container spacing={{ xs: 2, md: 3 }}>
-            {platillosFiltrados.map(p => (
-              <Zoom in key={p.id_platillo}>
-                <Grid item xs={12} sm={6} md={4}>
-                  <TarjetaPlatillo platillo={p} onAgregar={handleAgregar} />
+          <Grid container spacing={2}>
+            {platillosFiltrados.map((platillo, index) => (
+              <Zoom in timeout={200 + index * 100} key={platillo.id_platillo}>
+                <Grid item xs={12} sm={6} md={4} lg={3}>
+                  <TarjetaPlatillo 
+                    platillo={platillo} 
+                    onAgregar={handleAgregar}
+                  />
                 </Grid>
               </Zoom>
             ))}
           </Grid>
         )}
+        
+
       </Container>
     </Box>
   );

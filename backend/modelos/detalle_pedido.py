@@ -16,7 +16,7 @@ def obtener_detalle_por_id(id_detalle):
     conexion.close()
     return resultado
 
-def insertar_detalle_pedido(id_pedido, id_platillo, cantidad):
+def insertar_detalle_pedido(id_pedido, id_platillo, cantidad, precio_unitario=None):
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute(
@@ -49,7 +49,7 @@ def obtener_detalles_por_pedido(id_pedido):
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
     cursor.execute("""
-        SELECT dp.*, p.nombre as nombre_platillo, p.precio, p.descripción
+        SELECT dp.*, p.nombre as nombre_platillo, p.precio, p.descripcion
         FROM detallepedido dp
         JOIN platillo p ON dp.id_platillo = p.id_platillo
         WHERE dp.id_pedido = %s
@@ -63,7 +63,7 @@ def obtener_detalles_con_platillos():
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
     cursor.execute("""
-        SELECT dp.*, p.nombre as nombre_platillo, p.precio, p.descripción,
+        SELECT dp.*, p.nombre as nombre_platillo, p.precio, p.descripcion,
                ped.fecha_hora, ped.estado as estado_pedido
         FROM detallepedido dp
         JOIN platillo p ON dp.id_platillo = p.id_platillo

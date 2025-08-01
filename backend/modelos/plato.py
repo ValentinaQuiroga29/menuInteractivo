@@ -1,4 +1,4 @@
-from backend.conexion import obtener_conexion
+from conexion import obtener_conexion
 
 def obtener_platos():
     conexion = obtener_conexion()

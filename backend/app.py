@@ -13,15 +13,15 @@ import os
 
 app = Flask(__name__)
 
-# Configuración de CORS más permisiva para desarrollo
+# Configuración de CORS para desarrollo
 CORS(app, 
-     origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://192.168.2.7:5173"],
-     methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+     origins=["http://localhost:5173", "http://192.168.2.7:5173", "http://127.0.0.1:5173"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
      allow_headers=["Content-Type", "Authorization"],
-     supports_credentials=True)
+     supports_credentials=False)
 
 app.config['UPLOAD_FOLDER'] = 'backend/static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 
 # Asegura que el directorio exista
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

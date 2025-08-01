@@ -6,13 +6,8 @@ from modelos.notificacion import (
     actualizar_notificacion,
     eliminar_notificacion,
     obtener_notificaciones_por_usuario,
-    obtener_notificaciones_por_pedido,
-    obtener_notificaciones_no_leidas,
-    obtener_notificaciones_no_leidas_por_usuario,
     marcar_como_leida,
-    marcar_todas_como_leidas_usuario,
-    contar_notificaciones_no_leidas_usuario,
-    obtener_notificaciones_con_detalles
+    obtener_notificaciones_no_leidas
 )
 
 notificacion_rutas = Blueprint("notificacion_rutas", __name__)

@@ -26,13 +26,21 @@ def insertar_platillo(nombre, precio, descripcion, id_categoria, ruta_imagen):
     conexion.commit()
     conexion.close()
 
-def actualizar_platillo(id_platillo, nombre, descripcion, precio, imagen=None, estado='disponible', id_categoria=1):
+def actualizar_platillo(id_platillo, nombre, precio, descripcion, id_categoria, ruta_imagen=None):
     conexion = obtener_conexion()
     cursor = conexion.cursor()
-    cursor.execute(
-        "UPDATE platillo SET nombre = %s, descripción = %s, precio = %s, imagen = %s, estado = %s, id_categoria = %s WHERE id_platillo = %s",
-        (nombre, descripcion, precio, imagen, estado, id_categoria, id_platillo)
-    )
+    
+    if ruta_imagen:
+        cursor.execute(
+            "UPDATE platillo SET nombre = %s, precio = %s, descripcion = %s, id_categoria = %s, imagen = %s WHERE id_platillo = %s",
+            (nombre, precio, descripcion, id_categoria, ruta_imagen, id_platillo)
+        )
+    else:
+        cursor.execute(
+            "UPDATE platillo SET nombre = %s, precio = %s, descripcion = %s, id_categoria = %s WHERE id_platillo = %s",
+            (nombre, precio, descripcion, id_categoria, id_platillo)
+        )
+    
     conexion.commit()
     conexion.close()
 

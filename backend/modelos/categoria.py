@@ -3,7 +3,7 @@ from conexion import obtener_conexion
 def obtener_categorias():
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM categoría ORDER BY nombre")
+    cursor.execute("SELECT * FROM categoria ORDER BY nombre")
     resultado = cursor.fetchall()
     conexion.close()
     return resultado
@@ -11,7 +11,7 @@ def obtener_categorias():
 def obtener_categoria_por_id(id_categoria):
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM categoría WHERE id_categoria = %s", (id_categoria,))
+    cursor.execute("SELECT * FROM categoria WHERE id_categoria = %s", (id_categoria,))
     resultado = cursor.fetchone()
     conexion.close()
     return resultado
@@ -20,7 +20,7 @@ def insertar_categoria(nombre, descripcion=None):
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute(
-        "INSERT INTO categoría (nombre, descripción) VALUES (%s, %s)",
+        "INSERT INTO categoria (nombre, descripcion) VALUES (%s, %s)",
         (nombre, descripcion)
     )
     conexion.commit()
@@ -32,7 +32,7 @@ def actualizar_categoria(id_categoria, nombre, descripcion=None):
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute(
-        "UPDATE categoría SET nombre = %s, descripción = %s WHERE id_categoria = %s",
+        "UPDATE categoria SET nombre = %s, descripcion = %s WHERE id_categoria = %s",
         (nombre, descripcion, id_categoria)
     )
     conexion.commit()
@@ -41,14 +41,14 @@ def actualizar_categoria(id_categoria, nombre, descripcion=None):
 def eliminar_categoria(id_categoria):
     conexion = obtener_conexion()
     cursor = conexion.cursor()
-    cursor.execute("DELETE FROM categoría WHERE id_categoria = %s", (id_categoria,))
+    cursor.execute("DELETE FROM categoria WHERE id_categoria = %s", (id_categoria,))
     conexion.commit()
     conexion.close()
 
 def obtener_categoria_por_nombre(nombre):
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM categoría WHERE nombre = %s", (nombre,))
+    cursor.execute("SELECT * FROM categoria WHERE nombre = %s", (nombre,))
     resultado = cursor.fetchone()
     conexion.close()
     return resultado
